@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
+import TypewriterText from './components/TypewriterText';
 import { 
   Terminal as TerminalIcon, 
   Settings, 
@@ -137,6 +138,15 @@ export default function App() {
   const [terminalInput, setTerminalInput] = useState('');
   const [isSimulatingExecution, setIsSimulatingExecution] = useState(false);
   const [activeSimulationPercentage, setActiveSimulationPercentage] = useState(0);
+
+  const terminalContainerRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to the bottom of the terminal output stream whenever log entries update or when simulation is running
+  useEffect(() => {
+    if (terminalContainerRef.current) {
+      terminalContainerRef.current.scrollTop = terminalContainerRef.current.scrollHeight;
+    }
+  }, [terminalLogs, isSimulatingExecution, activeSimulationPercentage]);
 
   // Simulated download triggers
   const triggerSimulationDownload = (customCommandStr?: string) => {
@@ -851,20 +861,42 @@ read -r
                   
                   <div className="space-y-4">
                     {/* Active Terminal Output Stream */}
-                    <div className="flex-1 overflow-y-auto space-y-2 mb-4 p-2.5 bg-black/50 rounded-xl border border-white/5 min-h-[220px] max-h-[300px]">
+                    <div ref={terminalContainerRef} className="flex-1 overflow-y-auto space-y-2 mb-4 p-2.5 bg-black/50 rounded-xl border border-white/5 min-h-[220px] max-h-[300px]">
                       {terminalLogs.map((log) => (
                         <div key={log.id} className="font-mono text-xs leading-relaxed">
                           {log.type === 'prompt' && (
                             <p className="text-slate-100 flex items-start gap-1">
                               <span className="text-slate-400 font-bold shrink-0">C:\downloader&gt;</span>
-                              <span className="break-all">{log.text}</span>
+                              <span className="break-all">
+                                <TypewriterText text={log.text} statusType="prompt" id={log.id} onComplete={() => { if (terminalContainerRef.current) terminalContainerRef.current.scrollTop = terminalContainerRef.current.scrollHeight; }} />
+                              </span>
                             </p>
                           )}
-                          {log.type === 'output' && <p className="text-slate-300 whitespace-pre-wrap">{log.text}</p>}
-                          {log.type === 'system' && <p className="text-blue-400 font-medium">{log.text}</p>}
-                          {log.type === 'progress' && <p className="text-yellow-400 font-medium whitespace-pre-wrap">{log.text}</p>}
-                          {log.type === 'error' && <p className="text-rose-400 font-semibold">{log.text}</p>}
-                          {log.type === 'success' && <p className="text-emerald-400 font-bold">{log.text}</p>}
+                          {log.type === 'output' && (
+                            <p className="text-slate-300">
+                              <TypewriterText text={log.text} statusType="output" id={log.id} onComplete={() => { if (terminalContainerRef.current) terminalContainerRef.current.scrollTop = terminalContainerRef.current.scrollHeight; }} />
+                            </p>
+                          )}
+                          {log.type === 'system' && (
+                            <p className="text-blue-400 font-medium">
+                              <TypewriterText text={log.text} statusType="system" id={log.id} onComplete={() => { if (terminalContainerRef.current) terminalContainerRef.current.scrollTop = terminalContainerRef.current.scrollHeight; }} />
+                            </p>
+                          )}
+                          {log.type === 'progress' && (
+                            <p className="text-yellow-400 font-medium">
+                              <TypewriterText text={log.text} statusType="progress" id={log.id} onComplete={() => { if (terminalContainerRef.current) terminalContainerRef.current.scrollTop = terminalContainerRef.current.scrollHeight; }} />
+                            </p>
+                          )}
+                          {log.type === 'error' && (
+                            <p className="text-rose-400 font-semibold">
+                              <TypewriterText text={log.text} statusType="error" id={log.id} onComplete={() => { if (terminalContainerRef.current) terminalContainerRef.current.scrollTop = terminalContainerRef.current.scrollHeight; }} />
+                            </p>
+                          )}
+                          {log.type === 'success' && (
+                            <p className="text-emerald-400 font-bold">
+                              <TypewriterText text={log.text} statusType="success" id={log.id} onComplete={() => { if (terminalContainerRef.current) terminalContainerRef.current.scrollTop = terminalContainerRef.current.scrollHeight; }} />
+                            </p>
+                          )}
                         </div>
                       ))}
                       
