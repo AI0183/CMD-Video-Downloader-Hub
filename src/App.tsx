@@ -127,10 +127,12 @@ export default function App() {
 
   // Terminal simulator states
   const [terminalLogs, setTerminalLogs] = useState<Array<{ id: string; type: 'prompt' | 'output' | 'system' | 'progress' | 'error' | 'success'; text: string }>>([
-    { id: 'start-1', type: 'system', text: 'VeloDL CLI Studio Terminal [Version 2.4.1-stable]' },
-    { id: 'start-2', type: 'system', text: 'Connected to local sandbox. Type "help" to view custom commands.' },
-    { id: 'start-3', type: 'system', text: 'You can test commands or hit "Run in Terminal" below to execute scripts!' },
-    { id: 'start-4', type: 'system', text: ' ' }
+    { id: 'start-1', type: 'system', text: 'Microsoft Windows [Version 10.0.22631]' },
+    { id: 'start-2', type: 'system', text: '(c) Microsoft Corporation. All rights reserved.' },
+    { id: 'start-3', type: 'system', text: ' ' },
+    { id: 'start-4', type: 'system', text: 'CMD Dynamic Downloader Workspace [Version 2.4.1]' },
+    { id: 'start-5', type: 'system', text: 'Type "help" to view available CMD simulator commands, or click "Run in Terminal" below.' },
+    { id: 'start-6', type: 'system', text: ' ' }
   ]);
   const [terminalInput, setTerminalInput] = useState('');
   const [isSimulatingExecution, setIsSimulatingExecution] = useState(false);
@@ -225,13 +227,13 @@ export default function App() {
     if (cmdBase === 'help' || cmdBase === '?') {
       setTerminalLogs(prev => [
         ...prev,
-        { id: Math.random().toString(), type: 'system', text: 'Available Core CLI Commands:' },
-        { id: Math.random().toString(), type: 'output', text: '  yt-dlp [arguments]     Run customized social media download sequence.' },
-        { id: Math.random().toString(), type: 'output', text: '  velodl run             Runs currently selected GUI command script.' },
-        { id: Math.random().toString(), type: 'output', text: '  velodl config          Displays parameters of configuration sidebar.' },
-        { id: Math.random().toString(), type: 'output', text: '  ls                     Lists successfully downloaded elements.' },
-        { id: Math.random().toString(), type: 'output', text: '  sysinfo                Prints hosting server parameters.' },
-        { id: Math.random().toString(), type: 'output', text: '  clear                  Empties active terminal lines log.' },
+        { id: Math.random().toString(), type: 'system', text: 'Available CMD Simulator Commands:' },
+        { id: Math.random().toString(), type: 'output', text: '  yt-dlp [arguments]     Run custom media downloader manually.' },
+        { id: Math.random().toString(), type: 'output', text: '  velodl run             Execute currently loaded downloader batch script.' },
+        { id: Math.random().toString(), type: 'output', text: '  velodl config          Inspect parameters from the setup GUI panel.' },
+        { id: Math.random().toString(), type: 'output', text: '  dir / ls               List successfully downloaded items.' },
+        { id: Math.random().toString(), type: 'output', text: '  sysinfo                Print system host technical details.' },
+        { id: Math.random().toString(), type: 'output', text: '  cls / clear            Clear active console screen logs.' },
         { id: Math.random().toString(), type: 'system', text: ' ' }
       ]);
       return;
@@ -285,7 +287,7 @@ export default function App() {
     // Default syntax helper error response
     setTerminalLogs(prev => [
       ...prev,
-      { id: Math.random().toString(), type: 'error', text: `velodl: executable not found: "${cmdBase}". Type "help" to inspect guidelines.` },
+      { id: Math.random().toString(), type: 'error', text: `'${cmdBase}' is not recognized as an internal or external command, operable program or batch file.` },
       { id: Math.random().toString(), type: 'system', text: ' ' }
     ]);
   };
@@ -520,14 +522,14 @@ read -r
       <header className="h-16 border-b border-white/10 flex items-center justify-between px-6 bg-[#16191E] shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center font-bold text-white shadow-md shadow-blue-500/20">
-            DL
+            CMD
           </div>
           <div>
             <span className="font-semibold tracking-tight text-base text-white flex items-center gap-2">
-              VeloDL CLI Studio
+              CMD Downloader Studio
               <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded border border-white/10 text-slate-400 font-mono">v2.4.1-stable</span>
             </span>
-            <p className="text-[11px] text-slate-400">Social video cmd utility generator & local storage hub</p>
+            <p className="text-[11px] text-slate-400">Social video CMD downloader script generator & runner</p>
           </div>
         </div>
 
@@ -555,7 +557,7 @@ read -r
             }`}
           >
             <Download className="w-3.5 h-3.5" />
-            1-Min Setup Guide
+            1-Min CMD Setup
           </button>
           <button 
             id="tab-troubleshooting"
@@ -567,7 +569,7 @@ read -r
             }`}
           >
             <HelpCircle className="w-3.5 h-3.5" />
-            CLI Expert Tips
+            CMD Expert Tips
           </button>
         </div>
 
@@ -802,7 +804,7 @@ read -r
               {/* Active Threads Queue Widget (Extracted from requested Design HTML) */}
               <div className="bg-[#16191E] rounded-2xl border border-white/5 p-4 flex flex-col space-y-3.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Active CLI Threads</span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Active CMD Threads</span>
                   <span className="text-[10px] text-blue-400 font-mono">MOCK MONITOR</span>
                 </div>
                 
@@ -840,7 +842,7 @@ read -r
                     <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50"></div>
                     <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50"></div>
                   </div>
-                  <div className="text-[10px] text-slate-500 font-mono">session: default-zsh (80x24)</div>
+                  <div className="text-[10px] text-slate-500 font-mono">Command Prompt (cmd.exe)</div>
                   <div className="w-12"></div>
                 </div>
 
@@ -853,8 +855,8 @@ read -r
                       {terminalLogs.map((log) => (
                         <div key={log.id} className="font-mono text-xs leading-relaxed">
                           {log.type === 'prompt' && (
-                            <p className="text-green-400 flex items-start gap-1">
-                              <span className="opacity-60 shrink-0">admin@vdl-studio ~ %</span>
+                            <p className="text-slate-100 flex items-start gap-1">
+                              <span className="text-slate-400 font-bold shrink-0">C:\downloader&gt;</span>
                               <span className="break-all">{log.text}</span>
                             </p>
                           )}
@@ -874,7 +876,7 @@ read -r
                         }} 
                         className="flex items-center gap-2 border-t border-white/5 pt-2.5 mt-2"
                       >
-                        <span className="text-green-500 font-mono shrink-0">admin@vdl-studio ~ %</span>
+                        <span className="text-slate-400 font-mono font-bold shrink-0">C:\downloader&gt;</span>
                         <input 
                           type="text"
                           value={terminalInput}
@@ -1024,7 +1026,7 @@ read -r
               <div className="space-y-2">
                 <div className="flex items-center space-x-2 text-blue-400">
                   <Download className="w-5 h-5" />
-                  <span className="text-xs font-bold uppercase tracking-wider">Fast CLI Configuration</span>
+                  <span className="text-xs font-bold uppercase tracking-wider">Fast CMD Configuration</span>
                 </div>
                 <h2 className="text-2xl font-extrabold text-white tracking-tight">Configure yt-dlp & FFmpeg onto your Device</h2>
                 <p className="text-slate-400 text-sm leading-relaxed">
@@ -1135,8 +1137,8 @@ read -r
                   <ol className="list-decimal list-inside space-y-2 text-slate-400">
                     <li>Download the latest prebuilt Windows binary executable file container (<code className="text-blue-400 font-mono">yt-dlp.exe</code>) directly from the official GitHub releases repository page.</li>
                     <li>Download preconfigured static FFmpeg binaries from the official <a href="https://ffmpeg.org/" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline inline-flex items-center gap-1">FFmpeg Web Portal <ExternalLink className="w-3 h-3" /></a>.</li>
-                    <li>Move both of the executable binaries (<code className="text-white font-mono">yt-dlp.exe</code> and <code className="text-white font-mono">ffmpeg.exe</code>) inside a unified storage directory, e.g., <code className="text-blue-400 font-mono">C:\cli-tools\</code></li>
-                    <li>Add the path <code className="text-white font-mono">C:\cli-tools\</code> to your system's environmental variable Path parameters list so your console can run the command from any filesystem directory location.</li>
+                    <li>Move both of the executable binaries (<code className="text-white font-mono">yt-dlp.exe</code> and <code className="text-white font-mono">ffmpeg.exe</code>) inside a unified storage directory, e.g., <code className="text-blue-400 font-mono">C:\cmd-tools\</code></li>
+                    <li>Add the path <code className="text-white font-mono">C:\cmd-tools\</code> to your system\'s environmental variable Path parameters list so your console can run the command from any filesystem directory location.</li>
                   </ol>
                 </div>
               </div>
