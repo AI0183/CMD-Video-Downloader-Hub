@@ -114,16 +114,181 @@ export default function App() {
   const [os, setOs] = useState<'windows' | 'macos' | 'linux'>('windows');
 
   // Simulated queue and logs based on requested design style
-  const [activeThreads] = useState([
+  const [activeThreads, setActiveThreads] = useState([
     { id: 1, name: 'TikTok Reel #72', progress: 42, speed: '6.4 MB/s', eta: '8.2s left' },
     { id: 2, name: 'Insta_Post_44', progress: 0, speed: 'Waiting...', eta: '-' }
   ]);
 
-  const [historyLog] = useState([
+  const [historyLog, setHistoryLog] = useState([
     { id: 1, file: 'beach_sunset.mp4', platform: 'Instagram', status: 'success', path: '/Downloads/Instagram' },
     { id: 2, file: 'crypto_interview.mp4', platform: 'Twitter', status: 'success', path: '/Downloads/Twitter' },
     { id: 3, file: 'deleted_vlog.mp4', platform: 'YouTube', status: 'error', path: 'Error: Private Video' }
   ]);
+
+  // Terminal simulator states
+  const [terminalLogs, setTerminalLogs] = useState<Array<{ id: string; type: 'prompt' | 'output' | 'system' | 'progress' | 'error' | 'success'; text: string }>>([
+    { id: 'start-1', type: 'system', text: 'VeloDL CLI Studio Terminal [Version 2.4.1-stable]' },
+    { id: 'start-2', type: 'system', text: 'Connected to local sandbox. Type "help" to view custom commands.' },
+    { id: 'start-3', type: 'system', text: 'You can test commands or hit "Run in Terminal" below to execute scripts!' },
+    { id: 'start-4', type: 'system', text: ' ' }
+  ]);
+  const [terminalInput, setTerminalInput] = useState('');
+  const [isSimulatingExecution, setIsSimulatingExecution] = useState(false);
+  const [activeSimulationPercentage, setActiveSimulationPercentage] = useState(0);
+
+  // Simulated download triggers
+  const triggerSimulationDownload = (customCommandStr?: string) => {
+    if (isSimulatingExecution) return;
+    setIsSimulatingExecution(true);
+    setActiveSimulationPercentage(0);
+
+    const activeCommand = customCommandStr || generatedCommand;
+
+    // Append download start logs
+    const opId = Math.random().toString();
+    setTerminalLogs(prev => [
+      ...prev,
+      { id: opId + '-1', type: 'prompt', text: customCommandStr ? customCommandStr : 'velodl run' },
+      { id: opId + '-2', type: 'system', text: `[velodl] Executing sequence: ${activeCommand}` },
+      { id: opId + '-3', type: 'output', text: `[scraper] Contacting target address proxy API...` },
+    ]);
+
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += Math.floor(Math.random() * 12) + 5;
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(interval);
+
+        // Update progress inside simulation state
+        setActiveSimulationPercentage(100);
+
+        // Append final success message to logs
+        const targetFilename = settings.useCustomFilename && settings.filenameTemplate
+          ? `${settings.filenameTemplate.replace('%(title)s', 'NeverGonnaGiveYouUp').replace('%(ext)s', 'mp4')}`
+          : `Rick_Astley_Never_Gonna_Give_You_Up.${settings.quality === 'audio' ? settings.audioFormat : 'mp4'}`;
+
+        setTerminalLogs(prev => [
+          ...prev,
+          { id: Math.random().toString(), type: 'progress', text: `[download] 100.0% of 14.85MiB in 00:03` },
+          { id: Math.random().toString(), type: 'output', text: `[ffmpeg] Merging separate visual frame-blocks and audio channels...` },
+          { id: Math.random().toString(), type: 'success', text: `[success] Dynamic merge finished! Saved to local space:` },
+          { id: Math.random().toString(), type: 'success', text: `  -> ${settings.savePath}/${targetFilename}` },
+          { id: Math.random().toString(), type: 'system', text: ' ' }
+        ]);
+
+        // Add file to downloaded list history dynamically!
+        setHistoryLog(prev => [
+          {
+            id: Date.now(),
+            file: targetFilename,
+            platform: settings.platform.charAt(0).toUpperCase() + settings.platform.slice(1),
+            status: 'success',
+            path: settings.savePath
+          },
+          ...prev
+        ]);
+        setIsSimulatingExecution(false);
+      } else {
+        setActiveSimulationPercentage(progress);
+        setTerminalLogs(prev => {
+          // Filter out existing inline download indicators to overwrite progress line beautifully
+          const cleaned = prev.filter(x => !x.text.startsWith('[download] '));
+          const speed = (Math.random() * 4 + 4).toFixed(2);
+          const eta = Math.ceil((100 - progress) / 10);
+          return [
+            ...cleaned,
+            { id: Math.random().toString(), type: 'progress', text: `[download]  ${progress}% of 14.85MiB at ${speed}MiB/s ETA 00:0${eta}` }
+          ];
+        });
+      }
+    }, 240);
+  };
+
+  // Execute general manually typed Terminal commands
+  const executeTerminalCommand = (rawCommand: string) => {
+    if (!rawCommand.trim()) return;
+
+    const command = rawCommand.trim();
+    // Add command prompt line to logs
+    setTerminalLogs(prev => [...prev, { id: Math.random().toString(), type: 'prompt', text: command }]);
+    setTerminalInput('');
+
+    const args = command.split(' ');
+    const cmdBase = args[0].toLowerCase();
+
+    if (cmdBase === 'clear' || cmdBase === 'cls') {
+      setTerminalLogs([]);
+      return;
+    }
+
+    if (cmdBase === 'help' || cmdBase === '?') {
+      setTerminalLogs(prev => [
+        ...prev,
+        { id: Math.random().toString(), type: 'system', text: 'Available Core CLI Commands:' },
+        { id: Math.random().toString(), type: 'output', text: '  yt-dlp [arguments]     Run customized social media download sequence.' },
+        { id: Math.random().toString(), type: 'output', text: '  velodl run             Runs currently selected GUI command script.' },
+        { id: Math.random().toString(), type: 'output', text: '  velodl config          Displays parameters of configuration sidebar.' },
+        { id: Math.random().toString(), type: 'output', text: '  ls                     Lists successfully downloaded elements.' },
+        { id: Math.random().toString(), type: 'output', text: '  sysinfo                Prints hosting server parameters.' },
+        { id: Math.random().toString(), type: 'output', text: '  clear                  Empties active terminal lines log.' },
+        { id: Math.random().toString(), type: 'system', text: ' ' }
+      ]);
+      return;
+    }
+
+    if (cmdBase === 'sysinfo') {
+      setTerminalLogs(prev => [
+        ...prev,
+        { id: Math.random().toString(), type: 'output', text: 'HOST ARCHITECTURE SPECIFICATIONS:' },
+        { id: Math.random().toString(), type: 'output', text: `  Operating System:  ${os === 'windows' ? 'Windows 11 Professional NT6.3' : os === 'macos' ? 'macOS Sequoia v15.2-Core' : 'Ubuntu Server 24.04 LTS (HWE)'}` },
+        { id: Math.random().toString(), type: 'output', text: '  Processor:         Dual-Core Intel Xeon Scalable node v4' },
+        { id: Math.random().toString(), type: 'output', text: '  Physical Storage:  412.8 GB free of 1 TB virtual disk block' },
+        { id: Math.random().toString(), type: 'output', text: '  Compiler Paths:    /usr/bin/ffmpeg, /usr/bin/ffprobe, /usr/local/bin/yt-dlp' },
+        { id: Math.random().toString(), type: 'system', text: ' ' }
+      ]);
+      return;
+    }
+
+    if (cmdBase === 'ls' || cmdBase === 'dir') {
+      setTerminalLogs(prev => [
+        ...prev,
+        { id: Math.random().toString(), type: 'output', text: `Directory Content of: ${settings.savePath}` },
+        ...historyLog.filter(x => x.status === 'success').map(item => ({
+          id: Math.random().toString(),
+          type: 'output' as const,
+          text: `  -rw-r--r--   1 root  staff   ${Math.floor(Math.random() * 32 + 8)}MiB   Jun 12 01:25   ${item.file}`
+        })),
+        { id: Math.random().toString(), type: 'system', text: ' ' }
+      ]);
+      return;
+    }
+
+    if (cmdBase === 'velodl' && args[1] && args[1].toLowerCase() === 'config') {
+      setTerminalLogs(prev => [
+        ...prev,
+        { id: Math.random().toString(), type: 'output', text: 'ACTIVE VELODL SCRAPER CONFIGURATIONS:' },
+        { id: Math.random().toString(), type: 'output', text: `  Save Path Coordinate:    ${settings.savePath}` },
+        { id: Math.random().toString(), type: 'output', text: `  Quality Parameter:       ${settings.quality}` },
+        { id: Math.random().toString(), type: 'output', text: `  Selected Platform Feed:  ${settings.platform} preset` },
+        { id: Math.random().toString(), type: 'output', text: `  Audio Extraction Format: ${settings.audioFormat}` },
+        { id: Math.random().toString(), type: 'system', text: ' ' }
+      ]);
+      return;
+    }
+
+    if (cmdBase === 'yt-dlp' || (cmdBase === 'velodl' && args[1] && args[1].toLowerCase() === 'run')) {
+      triggerSimulationDownload(rawCommand);
+      return;
+    }
+
+    // Default syntax helper error response
+    setTerminalLogs(prev => [
+      ...prev,
+      { id: Math.random().toString(), type: 'error', text: `velodl: executable not found: "${cmdBase}". Type "help" to inspect guidelines.` },
+      { id: Math.random().toString(), type: 'system', text: ' ' }
+    ]);
+  };
 
   // Get active platform
   const activePlatformInfo = useMemo(() => {
@@ -224,6 +389,114 @@ export default function App() {
 
     return parts.join(' ');
   }, [settings, activePlatformInfo, os]);
+
+  // Compile and prompt immediate download of OS-specific executable prompt scripts
+  const handleDownloadCmdFile = () => {
+    let fileContent = '';
+    let fileName = '';
+
+    const targetUrl = settings.url.trim() || activePlatformInfo.defaultUrlPlaceholder;
+
+    if (os === 'windows') {
+      fileName = 'velodl_run.bat';
+      fileContent = `@echo off
+:: VeloDL CLI Studio - Automated Run Command Script
+chcp 65001 >nul
+title VeloDL Downloader Runner
+color 0B
+echo =======================================================================
+echo              VeloDL CLI Studio - Automated Runner
+echo =======================================================================
+echo.
+echo Target URL:         ${targetUrl}
+echo Quality Preset:     ${settings.quality}
+echo Save Destination:   ${settings.savePath}
+echo.
+echo [STATUS] Creating output directory if it doesn't exist...
+if not exist "${settings.savePath}" mkdir "${settings.savePath}"
+echo.
+echo [STATUS] Executing dynamic command:
+echo ${generatedCommand}
+echo.
+echo =======================================================================
+echo               Starting Download Process (yt-dlp)...
+echo =======================================================================
+${generatedCommand}
+echo.
+if %errorlevel% neq 0 (
+    echo.
+    echo [ERROR] There was an issue executing the yt-dlp downloader engine.
+    echo [TIP] Ensure you have yt-dlp and FFmpeg installed correctly on your PATH.
+    echo [TIP] Run "winget install yt-dlp" and "winget install FFmpeg" to install them easily!
+) else (
+    echo.
+    echo =======================================================================
+    echo [SUCCESS] Download process completed successfully!
+    echo =======================================================================
+)
+echo.
+echo Press any key to exit this cmd window...
+pause >nul
+`;
+    } else {
+      fileName = 'velodl_run.sh';
+      fileContent = `#!/bin/bash
+# VeloDL CLI Studio - Automated Run Command Script
+clear
+echo -e "\\033[1;34m=======================================================================\\033[0m"
+echo -e "\\033[1;36m              VeloDL CLI Studio - Automated Runner\\033[0m"
+echo -e "\\033[1;34m=======================================================================\\033[0m"
+echo ""
+echo "Target URL:         ${targetUrl}"
+echo "Quality Preset:     ${settings.quality}"
+echo "Save Destination:   ${settings.savePath}"
+echo ""
+echo "[STATUS] Creating output directory if it doesn't exist..."
+mkdir -p "${settings.savePath}"
+echo ""
+echo -e "[STATUS] Executing dynamically generated command:"
+echo -e "\\033[0;33m${generatedCommand}\\033[0m"
+echo ""
+echo -e "\\033[1;34m=======================================================================\\033[0m"
+echo "               Starting Download Process (yt-dlp)..."
+echo -e "\\033[1;34m=======================================================================\\033[0m"
+${generatedCommand}
+if [ $? -ne 0 ]; then
+    echo ""
+    echo -e "\\033[1;31m[ERROR] There was an issue executing the yt-dlp downloader engine.\\033[0m"
+    echo -e "💡 Ensure you have yt-dlp and FFmpeg installed correctly on your system."
+    echo -e "💡 On macOS, run: brew install yt-dlp ffmpeg"
+    echo -e "💡 On Debian/Ubuntu, run: sudo apt install yt-dlp ffmpeg"
+else
+    echo ""
+    echo -e "\\033[1;32m=======================================================================\\033[0m"
+    echo -e "\\033[1;32m[SUCCESS] Download process completed successfully!\\033[0m"
+    echo -e "\\033[1;32m=======================================================================\\033[0m"
+fi
+echo ""
+echo "Press [Enter] to exit..."
+read -r
+`;
+    }
+
+    const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    // Provide immediate interactive console output in terminal simulation
+    setTerminalLogs(prev => [
+      ...prev,
+      { id: Math.random().toString(), type: 'system', text: `[velodl] Generated local executable file: ${fileName}` },
+      { id: Math.random().toString(), type: 'success', text: `[success] Script file downloaded! Double-click to execute locally on your physical device.` },
+      { id: Math.random().toString(), type: 'system', text: ' ' }
+    ]);
+  };
 
   const selectPlatformIcon = (iconName: string) => {
     switch (iconName) {
@@ -575,37 +848,65 @@ export default function App() {
                 <div className="flex-1 p-5 font-mono text-xs leading-relaxed overflow-y-auto flex flex-col justify-between">
                   
                   <div className="space-y-4">
-                    {/* Simulated download steps to provide terminal context */}
-                    <div>
-                      <p className="text-green-400 mb-1">
-                        <span className="opacity-60">admin@vdl-studio ~ %</span> yt-dlp --check-updates
-                      </p>
-                      <p className="text-slate-500 mb-2">Checking manifest versions... yt-dlp is up-to-date (2026.04.12)</p>
+                    {/* Active Terminal Output Stream */}
+                    <div className="flex-1 overflow-y-auto space-y-2 mb-4 p-2.5 bg-black/50 rounded-xl border border-white/5 min-h-[220px] max-h-[300px]">
+                      {terminalLogs.map((log) => (
+                        <div key={log.id} className="font-mono text-xs leading-relaxed">
+                          {log.type === 'prompt' && (
+                            <p className="text-green-400 flex items-start gap-1">
+                              <span className="opacity-60 shrink-0">admin@vdl-studio ~ %</span>
+                              <span className="break-all">{log.text}</span>
+                            </p>
+                          )}
+                          {log.type === 'output' && <p className="text-slate-300 whitespace-pre-wrap">{log.text}</p>}
+                          {log.type === 'system' && <p className="text-blue-400 font-medium">{log.text}</p>}
+                          {log.type === 'progress' && <p className="text-yellow-400 font-medium whitespace-pre-wrap">{log.text}</p>}
+                          {log.type === 'error' && <p className="text-rose-400 font-semibold">{log.text}</p>}
+                          {log.type === 'success' && <p className="text-emerald-400 font-bold">{log.text}</p>}
+                        </div>
+                      ))}
                       
-                      <p className="text-green-400 mb-1">
-                        <span className="opacity-60">admin@vdl-studio ~ %</span> {`velodl config --set save_path "${settings.savePath}"`}
-                      </p>
-                      <p className="text-blue-400 mb-4">[INFO] Output path configured successfully to client storage.</p>
+                      {/* Active Prompt Input Element */}
+                      <form 
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          executeTerminalCommand(terminalInput);
+                        }} 
+                        className="flex items-center gap-2 border-t border-white/5 pt-2.5 mt-2"
+                      >
+                        <span className="text-green-500 font-mono shrink-0">admin@vdl-studio ~ %</span>
+                        <input 
+                          type="text"
+                          value={terminalInput}
+                          disabled={isSimulatingExecution}
+                          onChange={(e) => setTerminalInput(e.target.value)}
+                          placeholder={isSimulatingExecution ? 'Download task running...' : 'Type commands here (e.g. "help", "ls", "sysinfo")...'}
+                          className="flex-1 bg-transparent text-white font-mono outline-none text-xs border-none p-0 focus:ring-0 focus:outline-none placeholder:text-slate-700"
+                        />
+                      </form>
                     </div>
 
-                    <div className="border-t border-white/5 pt-3">
-                      <div className="flex items-center justify-between mb-2">
+                    <div className="border-t border-white/5 pt-3 flex flex-col gap-2.5">
+                      <div className="flex items-center justify-between">
                         <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Dynamic Executable Script</span>
-                        <span className="text-[9px] bg-blue-500/15 text-blue-300 font-bold px-2 py-0.5 rounded border border-blue-500/25">READY</span>
+                        {isSimulatingExecution ? (
+                          <span className="text-[9px] bg-yellow-500/10 text-yellow-500 font-bold px-2 py-0.5 rounded border border-yellow-500/25 animate-pulse">RUNNING - {activeSimulationPercentage}%</span>
+                        ) : (
+                          <span className="text-[9px] bg-blue-500/15 text-blue-300 font-bold px-2 py-0.5 rounded border border-blue-500/25">READY</span>
+                        )}
                       </div>
 
                       {/* Display the executable code block */}
-                      <div className="relative group bg-white/5 rounded-xl border border-white/5 p-4 flex items-center min-h-[140px]">
-                        <code className="text-blue-300 font-mono text-xs sm:text-sm leading-relaxed block break-all whitespace-pre-wrap pr-12 w-full">
+                      <div className="relative group bg-white/5 rounded-xl border border-white/5 p-3 flex items-center min-h-[80px]">
+                        <code className="text-blue-300 font-mono text-[11px] leading-relaxed block break-all whitespace-pre-wrap pr-12 w-full">
                           {generatedCommand}
                         </code>
 
                         {/* Direct Copy Button inside absolute grid coordinates */}
                         <button
                           onClick={() => handleCopy(generatedCommand, 'terminal-copier')}
-                          className="absolute right-3.5 top-3.5 p-2 rounded-lg bg-black/80 border border-white/10 text-slate-400 hover:text-white hover:bg-black transition-all"
+                          className="absolute right-2.5 top-2.5 p-1.5 rounded-lg bg-black/85 border border-white/10 text-slate-400 hover:text-white hover:bg-black transition-all"
                           title="Copy command to clipboard"
-                          id="btn-copy-terminal"
                         >
                           {copiedBlock === 'terminal-copier' ? (
                             <Check className="w-3.5 h-3.5 text-green-400" />
@@ -617,7 +918,7 @@ export default function App() {
                     </div>
 
                     {/* Quick Command Execution guidelines */}
-                    <div className="mt-4 p-3 bg-white/[0.02] border border-white/5 rounded-xl space-y-1">
+                    <div className="p-3 bg-white/[0.02] border border-white/5 rounded-xl space-y-1">
                       <div className="text-[10px] text-slate-400 uppercase font-bold flex items-center gap-1.5">
                         <HardDrive className="w-3 h-3 text-blue-400" /> Storage Destination Details:
                       </div>
@@ -629,30 +930,45 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Actions & Copy buttons */}
+                  {/* Actions & Live Simulation executors */}
                   <div className="pt-4 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3 mt-6">
                     <span className="text-[10px] text-slate-500 flex items-center gap-1">
                       <Info className="w-3 h-3" />
-                      Press enter inside your cmd shell to initialize.
+                      Type command + Enter or use simulator buttons.
                     </span>
 
-                    <button
-                      id="btn-trigger-copy"
-                      onClick={() => handleCopy(generatedCommand, 'terminal-copier')}
-                      className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-5 py-2.5 rounded-lg transition-colors uppercase tracking-widest flex items-center justify-center gap-2"
-                    >
-                      {copiedBlock === 'terminal-copier' ? (
-                        <>
-                          <Check className="w-3.5 h-3.5 text-green-300" />
-                          Copied!
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3.5 h-3.5" />
-                          Copy Shell script
-                        </>
-                      )}
-                    </button>
+                    <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                      <button
+                        onClick={() => handleCopy(generatedCommand, 'terminal-copier')}
+                        className="w-full sm:w-auto bg-[#1A1F26] hover:bg-[#252C36] text-slate-300 font-semibold text-xs px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 border border-white/5"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        Copy Script
+                      </button>
+
+                      <button
+                        id="btn-download-script"
+                        onClick={handleDownloadCmdFile}
+                        className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-md shadow-emerald-600/10"
+                        title={os === 'windows' ? 'Download executable .bat script' : 'Download executable .sh script'}
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        {os === 'windows' ? 'Download CMD (.bat)' : 'Download Script (.sh)'}
+                      </button>
+
+                      <button
+                        onClick={() => triggerSimulationDownload()}
+                        disabled={isSimulatingExecution}
+                        className={`w-full sm:w-auto font-bold text-xs px-5 py-2 rounded-lg transition-all uppercase tracking-wider flex items-center justify-center gap-2 ${
+                          isSimulatingExecution 
+                            ? 'bg-blue-600/20 text-blue-400 border border-blue-500/20 cursor-not-allowed' 
+                            : 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/15'
+                        }`}
+                      >
+                        <TerminalIcon className="w-3.5 h-3.5" />
+                        {isSimulatingExecution ? 'Simulating...' : 'Run in Terminal'}
+                      </button>
+                    </div>
                   </div>
 
                 </div>
